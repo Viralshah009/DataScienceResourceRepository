@@ -19,6 +19,7 @@ I might rename the repository, but will not remove any author attributions!
 [Python - Data Science Tutorials] (https://github.com/ujjwalkarn/DataSciencePython)
 
 [R - Data Science Tutorials] (https://github.com/ujjwalkarn/DataScienceR)
-Other Resources:
+
+#### Other Resources:
 [Awesome Data Science] (https://github.com/spetluru/awesome-datascience) - A repository with all things data-science 
 
