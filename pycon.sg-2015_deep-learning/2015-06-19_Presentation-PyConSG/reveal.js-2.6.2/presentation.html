@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+
+ <head>
+  <meta charset="utf-8">
+
+  <title>Going Deeper with Python & Theano</title>
+
+  <meta name="description" content="Presentation on Theano for PyCon.SG 2015">
+  <meta name="author" content="Martin Andrews">
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <link rel="stylesheet" href="css/reveal.min.css">
+  <link rel="stylesheet" xhref="css/theme/default.css" href="css/theme/sky.css" id="theme">
+
+  <!-- For syntax highlighting -->
+  <link rel="stylesheet" href="lib/css/zenburn.css">
+
+  <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+  <script>
+   if( window.location.search.match( /print-pdf/gi ) ) {
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = 'css/print/pdf.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+   }
+  </script>
+
+  <!--[if lt IE 9]>
+  <script src="lib/js/html5shiv.js"></script>
+  <![endif]-->
+ </head>
+
+ <body>
+  <div class="reveal">
+   <!-- Any section element inside of this container is displayed as a slide -->
+   <div class="slides">
+    
+<style>
+table.table-fix {
+ margin-left:auto;  margin-right:auto; border-collapse:collapse; cell-padding:5px;
+ margin-top:20px;
+}
+.table-fix td,.table-fix th {
+ padding: 6px;
+}
+.table-fix th {
+ border-bottom:1pt solid black;
+}
+.fix-spacing li {
+ margin-bottom:16pt;
+}
+</style>
+
+<!--
+## Target : 35-45 mins
+
+Intro : Me
+
+Intro : Motivation
+  History of the field
+  Why it's exciting now
+  Who's involved
+
+Intro: Basic Network
+  Diagram => Matrix multiply
+  Training == differentiation
+    so : need more than numpy 
+  Theano as computation description 
+
+Intro: MNIST
+  More complex set of operations
+  Parse tree from Theano
+  CPU output
+
+Intro: ConvNets
+  Convnet blocks
+  Size of problems
+  GPU output
+  Diagram of an ~AlexNet
+
+
+Intro: 'blocks' for Theano
+  Overlay on top of Theano
+    Make deeper networks simpler to describe
+  Maps to whole langauge of DNN
+    Different kinds of 
+      initializations
+        constants
+        gaussians 
+        orthonormals
+      sigmoids
+        tanh
+        ReLU ...
+      gradient descent methods 
+        momentum
+        ADAgrad ...
+      cost functions
+  LivePlotting Example
+
+Intro: RecurrentNets
+  Applications:
+    Audio in phones
+    Translation
+  Surprising that these automata can also be trained
+    Need lots of data
+    'blocks' language can describe it all
+
+"Demo" : Examples from character-by-character
+  10
+  100
+  1000
+  
+Intro: WordEmbedding
+  word2vec and gensim
+    Ought to mention since it's very competitive
+  
+What is in the REPO
+  Notes on installing blocks "bleeding edge"
+    NB : Fairly large downloads...
+  iPython
+    graphing
+    character-by-character
+  Please star
+
+ 
+ 
+Explain Approach
+  WordEmbedding
+    How this is exciting
+  Getting the vectors
+    word2vec
+    GloVE
+
+Explain Theano
+  Python module that describes relationships
+    Implements through numpy and GPU
+    GPU : CUDA and OpenCL routes
+  Simple idea
+    Code example  
+  Show updates
+    Symbolic differentiation 'for free'
+    Code example
+  'lasagne' deep learning setup too
+    Code example
+  
+Explain Theano Implementation
+  GPU consideration : Bus bandwidth
+  Need to do Word Embedding trick on-GPU
+  Paging in of training set
+
+Status
+  What exists
+    Already learning gap-detection
+  Next Steps
+    Maybe also do fill-in model
+    Open Source in ~ 1 week
+
+End
+!-->
+
+<section>
+ <h1>Going Deeper</h1>
+ <h3>with Python & Theano</h3>
+ <p>
+  <small><a href="http://mdda.net">Martin Andrews</a> / <a href="http://twitter.com/redcatlabs">@redcatlabs</a></small>
+ </p>
+ <p>
+  <small>19 June 2015</small>
+ </p>
+</section>
+
+
+<section>
+ <h2><strike>Machine</strike> Deep Learning</h2>
+</section>
+
+
+<section>
+ <h2>About Me</h2>
+ <ul class="fix-spacing">
+  <li>Finance / Startups / Machine Learning</li>
+  <li style="list-style-type:none">
+    <ul>
+      <li>Moved to Singapore in Sep-2013</li>
+    </ul>
+  </li>
+  <li>The past year (2014) = 'fun' :</li>
+  <li style="list-style-type:none">
+    <ul>
+      <li>Machine Learning : Deep Learning, NLP</li>
+      <li>Languages : Python, Go, Scala, NodeJS, Haskell, Python</li>
+      <li>"MeetUp Pro"</li>
+    </ul>
+  </li>
+  <li>This year (2015) = 'serious' NLP</li>
+ </ul>
+</section>
+
+
+<section>
+ <h2>Talk Outline</h2>
+ <ul class="fix-spacing">
+  <li>What people are doing</li>
+  <li>Why Python / Theano / ++ ?</li>
+  <li>Demos &amp; Code</li>
+ </ul>
+ <p><i>In a random order...</i></p>
+</section>
+
+<section>
+  <section>
+   <h2>Deep Learning</h2>
+   <ul class="fix-spacing">
+    <li>Neural Networks</li>
+    <li>Multiple layers</li>
+    <li>Fed with lots of Data</li>
+   </ul>
+  </section>
+  <section>
+   <h2>History</h2>
+   <ul class="fix-spacing">
+    <li>1980+ : Lots of enthusiasm for NNs</li>
+    <li>1995+ : Disillusionment = A.I. Winter (v2+)</li>
+    <li>2005+ : Stepwise improvement : Depth</li>
+    <li>2010+ : GPU revolution : Data</li>
+   </ul>
+  </section>
+  <section>
+   <h2>Who is involved</h2>
+   <ul class="fix-spacing">
+    <li>Google - Hinton (Toronto)</li>
+    <li>Facebook - LeCun (NYC)</li>
+    <li>Baidu - Ng (Stanford)</li>
+    <li>... Apple (acquisitions), etc</li>
+    <li>Universities, eg: Montreal (Bengio)</li>
+   </ul>
+  </section>
+</section>
+
+
+<section>
+  <section>
+   <h2>Basic Approach</h2>
+   <ul class="fix-spacing">
+    <li>Same as original Neural Networks in 1980s/1990s</li>
+    <li>Simple mathematical units ...</li>
+    <li style="list-style-type:none"> ... combine to compute a complex function</li>
+    <li>Focus on Supervised Learning here</li>
+   </ul>
+  </section>
+
+  <section>
+   <h2>Single "Neuron"</h2>
+   <img width="602" height="381" src="img/one-neuron_602x381.png" alt="One Neuron" style="border:none;box-shadow:none">
+   <p>Change weights to change output function</p>
+  </section>
+
+  <section>
+   <h2>Multi-Layer</h2>
+   <p>Layers of neurons combine and <br/>can form more complex functions</p>
+   <img width="356" height="324" src="img/multi-layer_356x324.png" alt="Multi-Layer" style="border:none;box-shadow:none">
+  </section>
+
+  <section>
+   <h2>Supervised Learning</h2>
+   <ul class="fix-spacing">
+    <li><strong>while</strong> not done :</li>
+    <li style="list-style-type:none">
+      <ul>
+        <li>Pick a training case (<code>x</code> &rarr; <code>target_y</code>)</li>
+        <li>Evaluate <code>output_y</code> from the <code>x</code></li>
+        <li>Modify the weights so that <code>output_y</code> is closer to <code>target_y</code> for that <code>x</code></li>
+      </ul>
+    </li>
+   </ul>
+  </section>
+
+  <section>
+   <h2>Gradient Descent</h2>
+   <p>Follow the gradient of the error <br />w.r.t the connection weights</p>
+   <img width="364" height="306" src="img/gradient-descent_364x306.png" alt="Gradient-Descent" style="border:none;box-shadow:none">
+  </section>
+</section>
+
+
+<section>
+  <section>
+   <h2>"Hello World" &rarr; MNIST</h2>
+   <ul class="fix-spacing">
+    <li>Nice dataset from the late 1980s</li>
+    <li>Training set of 50,000 28x28 images</li>
+    <li>Now end-of-life as a useful benchmark</li>
+   </ul>
+   <br />
+   <img width="255" height="204" src="img/mnist_100_digits_255x204.png" alt="MNIST digits" style="border:none;box-shadow:none">
+  </section>
+
+  <section>
+   <h2>Simple Network</h2>
+   <img width="829" height="425" src="img/netvis-mnist-100S_829x425.png" alt="Multi-Layer" style="border:none;box-shadow:none">
+   <p><i>... around 2-3% error rate on the test set</i></p>
+  </section>
+  
+<!--
+  <section>
+   <h2>"LeNet"</h2>
+   <img width="759" height="209" src="img/lenet5_759x209.png" alt="LeNet5 Convolutional Layers" style="border:none;box-shadow:none">
+   <p><i>... around 0.8% error rate on the test set</i></p>
+  </section>
+!-->
+</section>
+
+<section>
+  <section>
+   <h2>New Problems</h2>
+   <ul class="fix-spacing">
+    <li>ImageNet Competition</li>
+    <li>over 15 million labeled high-resolution images...</li>
+    <li style="list-style-type:none"> ... in over 22,000 categories</li>
+   </ul>
+   <br />
+   <img width="850" height="314" src="img/ilsvrc1_850x314.png" alt="ImageNet Karpathy" style="border:none;box-shadow:none">
+  </section>
+
+  <section>
+   <h2>Need for Speed</h2>
+   <img width="759" height="408" src="img/CPU-GPU_759x408.png" alt="CPU vs GPU" style="border:none;box-shadow:none">
+   <p><i>... need for GPU programmers</i></p>
+  </section>
+</section>
+
+
+<section>
+  <section>
+   <h2>Python</h2>
+   <ul class="fix-spacing">
+    <li>Great for high-level glue-code</li>
+    <li>Increasingly used in research: </li>
+    <li style="list-style-type:none">
+      <ul>
+        <li>iPython</li>
+        <li style="list-style-type:none"> + bokeh (visualisation)</li>
+        <li>Theano</li>
+        <li style="list-style-type:none"> + blocks + fuel</li>
+      </ul>
+    </li>
+    <li>Huge, supportive community</li>
+   </ul>
+  </section>
+  
+  <section>
+   <h2>Theano</h2>
+   <ul class="fix-spacing">
+    <li>Optimised Numerical Computation in Python</li>
+    <li>Computation is <em>described</em> in Python code :</li>
+    <li style="list-style-type:none">
+      <ul>
+        <li>Theano operates on expression tree itself</li>
+        <li>Optimizes the tree for operations it knows</li>
+        <li>Makes use of <code>numpy</code> and <code>BLAS</code></li>
+        <li>Also writes <code>C/C++</code> or <code>CUDA</code> (or <code>OpenCL</code>)</li>
+      </ul>
+    </li>
+   </ul>
+  </section>
+  
+  <section>
+   <h2>Graphing Demo</h2>
+   <br />
+   <pre><code data-trim contenteditable>
+# From : https://github.com/mdda
+# Repo : pycon.sg-2015_deep-learning
+# Open : ipynb / 1-LivePlotting.ipynb
+   </code></pre>
+  </section>
+  
+  <section>
+   <h2>Bokeh : Hello World</h2>
+   <p>First section of notebook</p>
+   <img width="700" height="394" src="img/ipython-bokeh-hello-world_700x394.png" alt="iPython/bokeh hello world" style="border:none;box-shadow:none">
+  </section>
+  
+  <section>
+   <h2>Theano : Gradient Descent</h2>
+   <p>Using the <code>blocks</code> set-up</p>
+   <pre><code data-trim contenteditable>
+plotter = Plot('Plotting example', channels=[['cost','a']], after_batch=True)
+main_loop = MainLoop(
+     model=None, data_stream=data_stream,
+     algorithm=GradientDescent(cost=cost,
+                               params=[a],
+                               step_rule=Scale(learning_rate=0.01)),
+     extensions=[
+        FinishAfter(after_n_epochs=1),
+        TrainingDataMonitoring([cost, a], after_batch=True),
+        plotter,
+     ])  
+main_loop.run()     
+   </code></pre>
+  </section>
+  
+  <section>
+   <h2>Live Updating</h2>
+   <p>Screen-grab during training ...</p>
+   <img width="478" height="400" src="img/ipython-live-plotting_478x400.png" alt="iPython/blocks/bokeh" style="border:none;box-shadow:none">
+   <p>(PR submitted to <code>blocks-extras</code>)</p>
+  </section>
+</section>
+
+
+<section>
+  <section>
+   <h2>More Complex Networks</h2>
+   <ximg width="698" height="217" src="img/google-imagenet_698x217.png" alt="Google ImageNet" style="border:none;box-shadow:none">
+   <img width="614" height="286" src="img/googlenet-arch_1228x573.jpg" alt="Google ImageNet" style="border:none;box-shadow:none">
+   <p><i>GoogLeNet (2014)</i></p>
+  </section>
+  
+  <section>
+   <h2>ImageNet Results</h2>
+   <img width="574" height="469" src="img/ImageNet-Results_574x469.png" alt="ImageNet Results" style="border:none;box-shadow:none">
+   <p><i>(now human competitive on ImageNet)</i></p>
+  </section>
+  
+</section>
+
+
+<section>
+  <section>
+   <h2>'blocks' for Theano</h2>
+   <ul class="fix-spacing">
+    <li>Overlay on top of Theano</li>
+    <li>Developed by Montreal research group :</li>
+    <li style="list-style-type:none">
+      <ul>
+        <li>Recently (2015-06) launched</li>
+        <li>Being actively developed</li>
+        <li>Documentation actually exists</li>
+        <li>Happy to accept Pull Requests</li>
+        <li>Active on Google Groups</li>
+      </ul>
+    </li>
+   </ul>
+  </section>
+  
+  <section>
+   <h2>'blocks' Teaser</h2>
+   <ul class="fix-spacing">
+    <li>DSL to describe deep networks : </li>
+    <li style="list-style-type:none">
+      <ul>
+        <li>Initialization : <code>Constant</code>, <code>Gaussian</code>, <code>Orthonormal</code>, ...</li>
+        <li>Sigmoids : <code>Tanh</code>, <code>ReLU</code>, ...</li>
+        <li>Gradient Descent : <code>Momentum</code>, <code>ADAgrad</code>, ...</li>
+        <li>Cost Functions : <code>CategoricalCrossEntropy</code>, ...</li>
+        <li>Misc : <code>BeamSearch</code>, ...</li>
+      </ul>
+    </li>
+    <li>Also 'fuel' for Dataset wrangling</li>
+   </ul>
+  </section>
+</section>
+  
+
+<section>
+  <section>
+   <h2>What's Next?</h2>
+   <img width="930" height="291" src="img/diags_1329x416.jpeg" alt="Recurrent Overview" style="border:none;box-shadow:none">
+  </section>
+  
+  <section>
+   <h2>Image Labelling</h2>
+   <img width="642" height="484" src="img/image-labelling_642x484.png" alt="Image Labelling" style="border:none;box-shadow:none">
+  </section>
+
+  <section>
+   <h2>LSTM Units</h2>
+   <img width="412" height="470" src="img/LSTM_412x470.png" alt="LSTM" style="border:none;box-shadow:none">
+  </section>
+
+  <section>
+   <h2>Image Labels</h2>
+   <img width="667" height="419" src="img/image-labelling-results_667x419.png" alt="Labelling Results" style="border:none;box-shadow:none">
+  </section>
+  
+<!--  
+  <section>
+   <h2>Translation</h2>
+   <img width="665" height="208" src="img/diags_1329x416.jpeg" alt="Recurrent Overview" style="border:none;box-shadow:none">
+  </section>
+  
+  <section>
+   <h2>Speech to Text</h2>
+   <img width="665" height="208" src="img/diags_1329x416.jpeg" alt="Recurrent Overview" style="border:none;box-shadow:none">
+  </section>
+!-->
+</section>
+
+
+<section>
+  <section>
+   <h2>Recurrent Neural Network Demo</h2>
+   <br />
+   <pre><code data-trim contenteditable>
+# From : https://github.com/mdda
+# Repo : pycon.sg-2015_deep-learning
+# Open : ipynb / 6-RNN-as-Author.ipynb
+   </code></pre>
+  </section>
+
+  <section>
+   <h2>Blocks : Simple Recurrent</h2>
+   <pre><code data-trim contenteditable>
+transition = GatedRecurrent(name="transition", dim=hidden_state_dim, activation=Tanh())
+generator =  SequenceGenerator(
+  Readout(readout_dim=num_states, source_names=["states"],
+          emitter=SoftmaxEmitter(name="emitter"),
+          feedback_brick=LookupFeedback(
+              num_states, feedback_dim, name='feedback'),
+          name="readout"),
+  transition,
+  weights_init=IsotropicGaussian(0.01), biases_init=Constant(0),
+  name="generator"
+)
+   </code></pre>
+  </section>
+
+  <section>
+   <h2>Training / Testing</h2>
+   <ul class="fix-spacing">
+    <li>Code includes two <code>ComputationGraph</code>s</li>
+    <li style="list-style-type:none">
+      <ul>
+        <li>Training : Uses character-wise data from files</li>
+        <li>Testing  : Greedily produces 1000 characters</li>
+      </ul>
+    </li>
+    <li>Easy to see results in 10-20mins of training</li>
+   </ul>
+  </section>
+  
+  <section>
+   <h2>Poetry : Epoch 1</h2>
+   <pre><code data-trim contenteditable>
+JDa&amp;g#sdWI&amp;MKW^gE)I}&amp;lt;UNK>f;6g)^5*|dXdBw6m\2&amp;XcXVy\ph8G&amp;lt;gAM&amp;>e4+mv5}OX8G*Yw9&amp;n3XW{h@&amp;T\Fk%BPMMI
+OV&amp;*C_] ._f$v4I~$@Z^&amp;[2
+mOVe`4W)"L-KClkO]wu]\$LCNadyo$h;>$jV7X$XK#4,T(y"sa6W0LWf\'_{\#XD]p%ck[;O`!Px\#E>/Or(.YZ|a]2}q|@a9.g3nV,U^qM	$+:nlk0sd;V-Z&amp;;7Y@Z "l-7P^C
+"xBF~~{n} n\ Pcbc9f?=y)FIc1h5kvjIi
+C&amp;lt;UNK>s	DWJr_$ZQtu"BTYm'|SMj-]Z&amp;lt;Vqj*.lh%IYW|q.GK:eNI"r>833?+RuUsOj_)a{\T}gH.zZR^(daC3mg5P0iFi]bqGo4?T|\>0_H&amp;g889voTh=~)^DDRYND46z1J]x;&amp;lt;U>>%eNIRckL)N8n&amp;lt;UNK>n3i)+Ln8
+?)9.#s7X]}$*sxZ"3tf ")
+@'HW.;I5)C.*%}&amp;lt;jcNLN+Z__RWoryOb#
+/`r
+   </code></pre>
+  </section>
+  
+  <section>
+   <h2>Poetry : Epoch 100</h2>
+   <pre><code data-trim contenteditable>
+Som the riscele his nreing the timest stordor hep pIs dach suedests her, so for farmauteds?
+By arnouy ig wore
+Thou hoasul dove he five grom ays he bare as bleen,
+The seend,
+And, an neeer,
+Whis with the rauk with, for be collenss ore his son froven faredure:
+Then andy bround'd the CowE nom shmlls everom thoy men ellone per in the lave ofpen the way ghiind, thour eyes in is ple gull heart sind, I I wild,
+Frreasuce anspeve, wrom fant beiver, not the afan
+And in thou' histwish a it wheme-tis lating ble the liveculd;
+Noorroint he fhallought, othelts.
+   </code></pre>
+  </section>
+  
+  <section>
+   <h2>Poetry : Epoch 1000</h2>
+   <pre><code data-trim contenteditable>
+AWhis grook my glass' to his sweet,
+Bub my fears liken?
+And of live every in seedher;
+A Lood stall,
+But tare tought than thencer sud earth,
+Use'st bee sechion,
+For all exprit' are a daud in heaven doth her infook perust the fork the tent.
+
+For maud,
+The pittent gover
+This and rimp,
+Who new
+  
+Thoir oldes and did hards, cound.
+   </code></pre>
+  </section>
+  
+  <section>
+   <h2>Plays : Epoch 338</h2>
+   <h3>Larger network...</h3>
+   <pre><code data-trim contenteditable>
+DEDENIUS	Why shoulmeying to to wife,
+	And thou say: and wall you teading for
+	that struke you down as sweet one.
+	With be more bornow, bly unjout on the account:
+	I duked you did four conlian unfortuned drausing-
+	to sicgia stranss, or not sleepplins his arms
+	Gentlemen? as write lord; gave sold.
+
+AENEMUUNS	Met that will knop unhian, where ever have
+	of the keep his jangst?icks he I love hide,
+	Jach heard which offen, sir!'
+
+	[Exit PATIIUS, MARGARUS arr	[Enter CLOTHUR]
+   </code></pre>
+  </section>
+</section>
+
+<section>
+  <section>
+   <h2>Theano : detail</h2>
+   <img width="690" height="390" src="img/zoom-1_690x390.png" alt="Theano diagram x1" style="border:none;box-shadow:none">
+  </section>
+  
+  <section>
+   <h2>... zoom out</h2>
+   <img width="600" height="348" src="img/zoom-2_600x348.png" alt="Theano diagram x2" style="border:none;box-shadow:none">
+  </section>
+  
+  <section>
+   <h2>... zoom out</h2>
+   <img width="600" height="313" src="img/zoom-3_600x313.png" alt="Theano diagram x3" style="border:none;box-shadow:none">
+  </section>
+  
+  <section>
+   <h2>Theano : "Simple RNN"</h2>
+   <img width="241" height="500" src="img/zoom-4_241x500.png" alt="Theano diagram x4" style="border:none;box-shadow:none">
+  </section>
+</section>
+
+<section>
+ <h2>Wrap-up</h2>
+ <ul class="fix-spacing">
+  <li>Theano makes GPUs Python-friendly</li>
+  <li>Code on GitHub : "mdda"</li>
+  <li style="list-style-type:none">
+    <ul>
+      <li>iPython Notebooks</li>
+      <li>Installation hints &amp; "Misc"</li>
+      <li><i>* Please Star *</i></li>
+    </ul>
+  </li>
+ </ul>
+ <img width="453" height="188" src="img/GitHub_453x188.png" alt="GitHub" style="border:none;box-shadow:none">
+</section>
+
+
+<section>
+ <h1>- QUESTIONS -</h1>
+ <br>
+ <h3>Martin.Andrews @<br> RedCatLabs.com</h3>
+ <br>
+ <p><a href="https://github.com/mdda">'mdda' on GitHub</a></p>
+ <p>HIRING = True</p>
+</section>
+
+   </div>
+  </div>
+
+<div id="redcatlabs-logo" style="background: url(img/redcatlabs_logo1_280x39.png);
+                                  position: absolute;
+                                  bottom: 50px;
+                                  left: 50px;
+                                  width: 280px;
+                                  height: 39px;">
+</div>  
+
+  <script src="lib/js/head.min.js"></script>
+  <script src="js/reveal.min.js"></script>
+
+  <script>
+
+   // Full list of configuration options available here:
+   // https://github.com/hakimel/reveal.js#configuration
+   Reveal.initialize({
+    controls: true,
+    progress: true,
+    history: true,
+    center: true,
+
+    theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+    transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+    // Parallax scrolling
+    // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+    // parallaxBackgroundSize: '2100px 900px',
+
+    // Optional libraries used to extend on reveal.js
+    dependencies: [
+     { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+     { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+     { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+     { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+     { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+     { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+    ]
+   });
+
+  </script>
+
+ </body>
+</html>

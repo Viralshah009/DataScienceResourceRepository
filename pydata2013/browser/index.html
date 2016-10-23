@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Congressional Network Analysis</title>
+    <script src="js/d3.v3.js" charset="utf-8"></script>
+    <script src="js/d3.tip.min.js" charset="utf-8"></script>
+    <script src="js/layout.js" charset="utf-8"></script>
+    <style type="text/css">
+        body {
+            font-family: "Helvetica Neue", Helvetica, sans-serif;
+        }
+
+        #content {
+            width: 900px;
+            margin: 0px auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 64px;
+            font-weight: 300;
+            letter-spacing: -2px;
+            text-rendering: optimizeLegibility;
+        }
+
+        svg {
+            border: 1px solid #DEDEDE;
+        }
+
+        .d3-tip {
+          line-height: 1;
+          font-weight: bold;
+          padding: 12px;
+          background: rgba(0, 0, 0, 0.8);
+          color: #fff;
+          border-radius: 2px;
+          pointer-events: none;
+        }
+
+        /* Creates a small triangle extender for the tooltip */
+        .d3-tip:after {
+          box-sizing: border-box;
+          display: inline;
+          font-size: 10px;
+          width: 100%;
+          line-height: 1;
+          color: rgba(0, 0, 0, 0.8);
+          content: "\25BC";
+          position: absolute;
+          text-align: center;
+        }
+
+        /* Style northward tooltips differently */
+        .d3-tip.n:after {
+          margin: -1px 0 0 0;
+          top: 100%;
+          left: 0;
+        }
+    </style>
+</head>
+<body>
+  <div id="content">
+    <h1>Congressional Network Analysis</h1>
+    <svg id="network" width="700" height="400">
+      <foreignObject x="540" y="7" width="200" height="20">
+        <select name="node-size-attribute" id="node-size-attribute">
+          <option value="---" selected>None Selected</option>
+          <option value="degree">Degree</option>
+          <option value="betweenness">Betweenness</option>
+        </select>
+      </foreignObject>
+    </svg>
+  </div>
+</body>
+</html>

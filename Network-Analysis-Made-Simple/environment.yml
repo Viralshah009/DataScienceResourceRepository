@@ -1,0 +1,16 @@
+name: network
+channels:
+- ericmjl
+- conda-forge
+- defaults
+dependencies:
+- scipy
+- matplotlib
+- networkx
+- numpy
+- pandas
+- python=3.5
+- hiveplot
+- circos
+- jupyter
+- pip

@@ -1,0 +1,33 @@
+--allow-external theano
+--allow-unverified theano
+git+https://github.com/Theano/Theano.git#egg=theano
+
+#blocks>=0.0.1
+--allow-external blocks
+--allow-unverified blocks
+git+git://github.com/mila-udem/blocks.git
+
+--allow-external fuel
+--allow-unverified fuel
+git+https://github.com/mila-udem/fuel#egg=fuel
+
+#blocks-extras>=0.0.1
+--allow-external blocks-extras
+--allow-unverified blocks-extras
+git+git://github.com/mila-udem/blocks-extras.git
+
+# Plotting of graphs
+bokeh>=0.9.0
+jsonschema
+
+# iPython Notebook 
+ipython>=3.1.0
+
+# Visualization of theano graphs
+pydot 
+
+## This is for Python word2vec
+#gensim
+
+## This is a hd5 pickler (fast)
+hickle

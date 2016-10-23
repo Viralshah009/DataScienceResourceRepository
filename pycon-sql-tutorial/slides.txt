@@ -1,0 +1,184 @@
+
+
+
+
+
+
+            The Structured Query Language (SQL)
+                   for Python Developers
+
+
+
+
+
+
+                        PyCon 2012
+                      Brandon Rhodes
+
+
+
+
+
+
+
+                           Files
+                           —————
+
+                  • movie.db database
+                  • virtualenv tool
+                  • SQLAlchemy package
+                  • SQLAlchemy documentation
+                  • SQLite3 documentation
+                  • model.py script
+
+
+
+
+
+
+
+
+
+                        Principles
+                        ——————————
+
+         • The use of real tools, not just slides
+         • Seeing me recover from mistakes
+         • Big picture, not stuff you can look up
+         • Ask questions!
+
+
+
+                      The Big Picture
+                      ———————————————
+
+  Python vs SQL: Statements  — procedures vs queries
+                 Flow        — explicit vs implicit
+                 Variables   — objects vs tables
+                 Data types  — containers vs relations
+                 Consistency — locks vs transactions
+
+  Query optimization, both single-table and JOIN
+
+  DB-API:        Quoting and security
+                 Combining statements for efficiency
+
+  ORM:           "Object-Relational Mapper" as persistence
+                 Objects are prettier than the DB-API
+                 Using JOIN to expose your query
+
+
+
+
+
+
+
+                         The Gist
+                         ————————
+
+
+                 • One container: TABLE
+                 • One statement: INSERT
+                 • One abstraction: JOIN
+
+
+                            Why?
+
+                         it scales
+
+
+
+                 Another approach: MongoDB
+
+ {title: "Sleuth",
+  year: 1972,
+  roles: [
+      {name: "Andrew Wyke",
+       actor: {name: "Laurence Olivier", born: 1907}
+      },
+      {name: "Milo Tindle",
+       actor: {name: "Michael Caine", born: 1933}
+      }]}
+
+ {title: "Sleuth",
+  year: 1972,
+  roles: [{name: "Andrew Wyke", actor: 1145125},
+          {name: "Milo Tindle", actor: 221217}
+  ]}
+
+
+                           Role
+             ┌────────┬────────┬─────────────┐
+             │movie_id│actor_id│     name    │
+             │    .   │    .   │      .      │
+             │  391853│ 1145125│ Andrew Wyke │
+             │    .   │    .   │      .      │
+             │  391853│  221217│ Milo Tindle │
+             │    .   │    .   │      .      │
+             └────────┴────────┴─────────────┘
+       Movie                    Actor
+  ┌──────┬──────┬────┐ ┌───────┬──────────────────┬──────┐
+  │ id   │ name │year│ │   id  │       name       │gender│
+  │   .  │  .   │    │ │   .   │         .        │   .  │
+  │391853│Sleuth│1972│ │ 221217│Caine, Michael (I)│   m  │
+  │   .  │  .   │    │ │   .   │         .        │   .  │
+  └──────┴──────┴────┘ │1145125│Olivier, Laurence │   m  │
+                       │   .   │         .        │   .  │
+                       └───────┴──────────────────┴──────┘
+
+
+
+SELECT * FROM table;
+SELECT * FROM table LIMIT 3;
+SELECT * FROM table WHERE column = value;
+SELECT * FROM table WHERE column < value OR column > value;
+SELECT * FROM table WHERE column <> value;  -- does not eq
+SELECT * FROM table ORDER BY column ASC LIMIT 5;
+SELECT * FROM table ORDER BY length(column) DESC LIMIT 7;
+SELECT column, length(column) FROM table ...;
+SELECT DISTINCT gender FROM actor;
+
+
+
+        ┌┐           ↘ ┌┐ ⎫┌┐      ┌┐
+        ├┤           ↗ └┘ ⎭└┘    → └┘
+        ├┤    ┌┐
+        ├┤ →  ├┤       ┌┐ ⎫
+        ├┤    └┘     ↘ ├┤ ⎪               ↘  ┌┐
+        ├┤           ↗ ├┤ ⎪┌┐             ↗  ├┤
+        ├┤  → ┌┐     ↘ ├┤ ⎪└┘             ↘  └┘
+        ├┤    └┘       └┘ ⎭                         LIMIT
+        ├┤  WHERE   GROUP BY    HAVING   ORDER BY   OFFSET
+        ├┤
+        ├┤  → ┌┐       ┌┐ ⎫
+        ├┤    ├┤     ↗ ├┤ ⎪┌┐      ┌┐
+        ├┤    └┘     ↘ ├┤ ⎪└┘    → └┘
+        ├┤  → ┌┐     ↗ └┘ ⎭
+        ├┤    └┘
+        ├┤    ┌┐
+        └┘    └┘
+
+
+
+  EXPLAIN QUERY PLAN SELECT * FROM movie JOIN role ON
+  (movie.id = movie_id) JOIN actor ON (actor_id = actor.id)
+  WHERE movie.year >= 1920 AND movie.year <= 1921 AND
+  actor.name >= 'Smith' AND actor.name <= 'Smitha';
+
+  CREATE INDEX i1 ON movie (year);
+  CREATE INDEX i2 ON actor (name);
+
+  (more explains)
+
+  CREATE INDEX i3 ON role (movie_id);
+  CREATE INDEX i4 ON role (actor_id);
+
+  (more explains)
+
+  ANALYZE;
+
+Local variables:
+ mode:text
+ mode:page
+ fill-column:59
+End:
