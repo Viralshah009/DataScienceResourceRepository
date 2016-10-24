@@ -5,11 +5,12 @@ This is a collection of other repositories on GitHub that contain tutorials abou
 
 
 
-### Disclaimer: I didn't make any of these tutorials (as of 10/23). I'm just restructuring them to make a more organized repostiory.
+### Disclaimer: I didn't make any of these tutorials (as of 10/23). I'm just restructuring them to make a more organized repository.
 I might rename the repository, but will not remove any author attributions!
 
 
 ## Index (in progress)
+<pre>
 [PyData Talks Repository] (https://github.com/spetluru/DataScienceResourceRepository/tree/master/datascience-anthology-pydata)
 Introduction to Pandas [A] (https://github.com/spetluru/DataScienceResourceRepository/tree/master/PyDataNYC2015/tutorial),[B] (https://github.com/spetluru/DataScienceResourceRepository/tree/master/pycon-pandas-tutorial)
 [Spark] (https://github.com/spetluru/DataScienceResourceRepository/tree/master/spark-pycon15)
@@ -33,4 +34,5 @@ Deep Learning - Python + Theano [A] (https://github.com/spetluru/DataScienceReso
 [Python - Data Science Tutorials] (https://github.com/ujjwalkarn/DataSciencePython)
 [R - Data Science Tutorials] (https://github.com/ujjwalkarn/DataScienceR)
 [Awesome Data Science] (https://github.com/spetluru/awesome-datascience) - A repository with all things data-science 
+</pre>
 
